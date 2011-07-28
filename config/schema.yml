@@ -1,0 +1,23 @@
+---
+propel: 
+  person: 
+    id_person: 
+      type: BIGINT
+      required: true
+      primaryKey: true
+    name_given: 
+      type: VARCHAR
+      size: 20
+    location: 
+      type: VARCHAR
+      size: 30
+    gender: 
+      type: CHAR
+      size: 1
+    dob: 
+      type: DATE
+    name_family: 
+      type: VARCHAR
+      size: 40
+    enabled: 
+      type: INTEGER

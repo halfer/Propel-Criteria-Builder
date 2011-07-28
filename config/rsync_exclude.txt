@@ -1,0 +1,11 @@
+.svn
+/web/uploads/*
+/web/frontend_dev.php
+/cache/*
+/log/*
+/config/rsync_exclude.txt
+/config/properties.ini
+/doc/
+/lib/model/*
+/plugins/.*
+/test/*

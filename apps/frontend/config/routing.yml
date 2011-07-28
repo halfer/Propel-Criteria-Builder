@@ -1,0 +1,22 @@
+analyse:
+  url:  /criteria/analyse
+  param: { module: sfPropelQueryBuilder, action: analyse }
+
+start:
+  url:  /criteria
+  param: { module: sfPropelQueryBuilder, action: index }
+
+homepage:
+  url:   /
+  param: { module: sfPropelQueryBuilder, action: index }
+
+default_symfony:
+  url:   /symfony/:action/*
+  param: { module: default }
+
+default_index:
+  url:   /:module
+  param: { action: index }
+
+default:
+  url:   /:module/:action/*

@@ -1,0 +1,47 @@
+<p>&nbsp;</p>
+
+<h2>Examples to tackle</h2>
+
+<pre>
+Example 1: (A AND B AND (C OR (D AND E)))
+Tree:    AND
+         |
+      A, B, OR
+            |
+            C, AND
+               |
+               D, E
+</pre>
+
+<hr/>
+
+<pre>
+Example 2: (A OR B OR (C OR D))
+Tree:     OR
+           |
+        A, B, OR
+              |
+              C, D
+
+Simplification process: detect adjacent ORs
+</pre>
+<hr/>
+
+<pre>
+Example 3: (A AND B OR C)
+Error: intended precedence unclear
+</pre>
+
+<hr/>
+
+<pre>
+Example 4: A = 1 AND A = 2
+Could this be detected and a warning noted? After simplification, this breaks down to: if the same variable 
+appears twice in an AND clause, show a warning
+</pre>
+
+<hr/>
+
+<pre>
+Example 5: set up joins, individually selected columns, ORDER BYs, GROUP BYs, HAVINGs.
+</pre>

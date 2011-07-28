@@ -1,0 +1,18 @@
+default:
+  http_metas:
+    content-type: text/html
+
+  metas:
+    title:        Propel Criteria Builder
+    robots:       index, follow
+    description:  Given a basic SQL statement, the Propel Criteria Builder constructs a PHP snippet to build the corresponding Propel Criteria object
+
+    keywords:     Propel, Criteria, Builder
+    language:     en
+
+  stylesheets:    [main]
+
+  javascripts:    []
+
+  has_layout:     on
+  layout:         layout
