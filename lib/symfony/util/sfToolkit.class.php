@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,8 +15,8 @@
  * @package    symfony
  * @subpackage util
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
- * @version    SVN: $Id: sfToolkit.class.php 4385 2007-06-25 16:40:04Z fabien $
+ * @author     Sean Kerr <sean@code-box.org>
+ * @version    SVN: $Id: sfToolkit.class.php 19216 2009-06-13 06:42:00Z fabien $
  */
 class sfToolkit
 {
@@ -92,7 +92,7 @@ class sfToolkit
     }
 
     // close file pointer
-    fclose($fp);
+    closedir($fp);
   }
 
   /**
@@ -176,46 +176,30 @@ class sfToolkit
 
   public static function stripComments($source)
   {
-    if (!sfConfig::get('sf_strip_comments', true))
+    if (!sfConfig::get('sf_strip_comments', true) || !function_exists('token_get_all'))
     {
       return $source;
     }
 
-    // tokenizer available?
-    if (!function_exists('token_get_all'))
-    {
-      $source = sfToolkit::pregtr($source, array('#/\*((?!\*/)[\d\D\s])*\*/#' => '',   // remove /* ... */
-                                                 '#^\s*//.*$#m'               => '')); // remove // ...
-
-      return $source;
-    }
-
+    $ignore = array(T_COMMENT => true, T_DOC_COMMENT => true);
     $output = '';
 
-    $tokens = token_get_all($source);
-    foreach ($tokens as $token)
+    foreach (token_get_all($source) as $token)
     {
-      if (is_string($token))
+      // array
+      if (isset($token[1]))
       {
-        // simple 1-character token
-        $output .= $token;
+        // no action on comments
+        if (!isset($ignore[$token[0]]))
+        {
+          // anything else -> output "as is"
+          $output .= $token[1];
+        }
       }
       else
       {
-        // token array
-        list($id, $text) = $token;
-
-        switch ($id)
-        {
-          case T_COMMENT:
-          case T_DOC_COMMENT:
-            // no action on comments
-            break;
-          default:
-            // anything else -> output "as is"
-            $output .= $text;
-            break;
-        }
+        // simple 1-character token
+        $output .= $token;
       }
     }
 
@@ -369,7 +353,7 @@ class sfToolkit
    */
   public static function replaceConstants($value)
   {
-    return is_string($value) ? preg_replace('/%(.+?)%/e', 'sfConfig::has(strtolower("\\1")) ? sfConfig::get(strtolower("\\1")) : "%\\1%"', $value) : $value;
+    return is_string($value) ? preg_replace_callback('/%(.+?)%/', create_function('$v', 'return sfConfig::has(strtolower($v[1])) ? sfConfig::get(strtolower($v[1])) : "%{$v[1]}%";'), $value) : $value;
   }
 
   /**
@@ -455,6 +439,44 @@ class sfToolkit
     return true;
   }
 
+  public static function &getArrayValueForPathByRef(&$values, $name, $default = null)
+  {
+    if (false !== ($offset = strpos($name, '[')))
+    {
+      if (isset($values[substr($name, 0, $offset)]))
+      {
+        $array = &$values[substr($name, 0, $offset)];
+
+        while ($pos = strpos($name, '[', $offset))
+        {
+          $end = strpos($name, ']', $pos);
+          if ($end == $pos + 1)
+          {
+            // reached a []
+            break;
+          }
+          else if (!isset($array[substr($name, $pos + 1, $end - $pos - 1)]))
+          {
+            return $default;
+          }
+          else if (is_array($array))
+          {
+            $array = &$array[substr($name, $pos + 1, $end - $pos - 1)];
+            $offset = $end;
+          }
+          else
+          {
+            return $default;
+          }
+        }
+
+        return $array;
+      }
+    }
+
+    return $default;
+  }
+
   public static function getArrayValueForPath($values, $name, $default = null)
   {
     if (false !== ($offset = strpos($name, '[')))
@@ -475,8 +497,15 @@ class sfToolkit
           {
             return $default;
           }
-          $array = $array[substr($name, $pos + 1, $end - $pos - 1)];
-          $offset = $end;
+          else if (is_array($array))
+          {
+            $array = $array[substr($name, $pos + 1, $end - $pos - 1)];
+            $offset = $end;
+          }
+          else
+          {
+            return $default;
+          }
         }
 
         return $array;

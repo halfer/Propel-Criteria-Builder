@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,8 +14,8 @@
  * @package    symfony
  * @subpackage config
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
- * @version    SVN: $Id: sfAutoloadConfigHandler.class.php 3256 2007-01-13 08:39:10Z fabien $
+ * @author     Sean Kerr <sean@code-box.org>
+ * @version    SVN: $Id: sfAutoloadConfigHandler.class.php 17047 2009-04-06 14:43:02Z fabien $
  */
 class sfAutoloadConfigHandler extends sfYamlConfigHandler
 {
@@ -78,7 +78,7 @@ class sfAutoloadConfigHandler extends sfYamlConfigHandler
         $recursive = ((isset($entry['recursive'])) ? $entry['recursive'] : false);
         if (!$recursive)
         {
-          $finder->maxdepth(1);
+          $finder->maxdepth(0);
         }
 
         // exclude files or directories?
@@ -106,14 +106,14 @@ class sfAutoloadConfigHandler extends sfYamlConfigHandler
             if (isset($entry['prefix']))
             {
               // FIXME: does not work for plugins installed with a symlink
-              preg_match('~^'.str_replace('\*', '(.+?)', preg_quote(str_replace('/', DIRECTORY_SEPARATOR, $path), '~')).'~', $file, $match);
+              preg_match('~^'.str_replace('\*', '(.+?)', preg_quote(str_replace('/', DIRECTORY_SEPARATOR, $path), '~')).'~', str_replace('/', DIRECTORY_SEPARATOR, $file), $match);
               if (isset($match[$entry['prefix']]))
               {
                 $prefix = $match[$entry['prefix']].'/';
               }
             }
 
-            $data[] = sprintf("'%s%s' => '%s',", $prefix, $class, $file);
+            $data[] = sprintf("'%s%s' => '%s',", $prefix, $class, str_replace('\\', '\\\\', $file));
           }
         }
       }

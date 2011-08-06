@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,8 +17,8 @@
  * @package    symfony
  * @subpackage config
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
- * @version    SVN: $Id: sfConfigCache.class.php 6725 2007-12-26 21:49:37Z fabien $
+ * @author     Sean Kerr <sean@code-box.org>
+ * @version    SVN: $Id: sfConfigCache.class.php 10059 2008-07-02 05:38:45Z fabien $
  */
 class sfConfigCache
 {
@@ -313,7 +313,7 @@ class sfConfigCache
       }
 
       // close file pointer
-      fclose($fp);
+      closedir($fp);
     }
     else
     {
@@ -336,7 +336,15 @@ class sfConfigCache
   protected function writeCacheFile($config, $cache, &$data)
   {
     $fileCache = new sfFileCache(dirname($cache));
+    $fileCache->initialize(array('lifeTime' => 86400 * 365 * 10, 'automaticCleaningFactor' => 0));
+    $fileCache->setWriteControl(true);
     $fileCache->setSuffix('');
-    $fileCache->set(basename($cache), '', $data);
+
+    if (!$fileCache->set(basename($cache), '', $data))
+    {
+      $fileCache->remove(basename($cache), '');
+
+      throw new sfConfigurationException(sprintf('Unable to write config cache for "%s".', $config));
+    }
   }
 }

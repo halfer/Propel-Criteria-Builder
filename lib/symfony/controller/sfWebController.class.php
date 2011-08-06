@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,8 +15,8 @@
  * @package    symfony
  * @subpackage controller
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
- * @version    SVN: $Id: sfWebController.class.php 4763 2007-07-31 11:52:49Z fabien $
+ * @author     Sean Kerr <sean@code-box.org>
+ * @version    SVN: $Id: sfWebController.class.php 16348 2009-03-16 17:03:35Z fabien $
  */
 abstract class sfWebController extends sfController
 {
@@ -76,7 +76,7 @@ abstract class sfWebController extends sfController
     else
     {
       // use GET format
-      $divider = ini_get('arg_separator.output');
+      $divider = '&';
       $equals  = '=';
       $querydiv = '?';
     }
@@ -187,7 +187,7 @@ abstract class sfWebController extends sfController
       /x', $query_string, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
       foreach ($matches as $match)
       {
-        $params[$match[1][0]] = $match[2][0];
+        $params[urldecode($match[1][0])] = urldecode($match[2][0]);
       }
 
       // check that all string is matched

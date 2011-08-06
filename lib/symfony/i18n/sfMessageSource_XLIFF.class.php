@@ -13,7 +13,7 @@
  * {@link http://prado.sourceforge.net/}
  *
  * @author     Wei Zhuo <weizhuo[at]gmail[dot]com>
- * @version    $Id: sfMessageSource_XLIFF.class.php 6806 2007-12-29 07:53:10Z fabien $
+ * @version    $Id: sfMessageSource_XLIFF.class.php 19777 2009-07-01 10:14:21Z fabien $
  * @package    symfony
  * @subpackage i18n
  */
@@ -67,16 +67,16 @@ class sfMessageSource_XLIFF extends sfMessageSource
    */
   protected function &loadData($filename)
   {
-    //load it.
-
-    $XML = simplexml_load_file($filename);
-
-    if (!$XML)
+    libxml_use_internal_errors(true);
+    if (!$xml = simplexml_load_file($filename))
     {
-      return false;
-    }
+      $error = false;
 
-    $translationUnit = $XML->xpath('//trans-unit');
+      return $error;
+    }
+    libxml_use_internal_errors(false);
+
+    $translationUnit = $xml->xpath('//trans-unit');
 
     $translations = array();
 
@@ -322,8 +322,10 @@ class sfMessageSource_XLIFF extends sfMessageSource
       $unit = $dom->createElement('trans-unit');
       $unit->setAttribute('id', ++$count);
 
-      $source = $dom->createElement('source', $message);
-      $target = $dom->createElement('target', '');
+      $source = $dom->createElement('source');
+      $source->appendChild($dom->createTextNode($message));
+      $target = $dom->createElement('target');
+      $target->appendChild($dom->createTextNode(''));
 
       $unit->appendChild($dom->createTextNode("\n"));
       $unit->appendChild($source);
@@ -422,13 +424,17 @@ class sfMessageSource_XLIFF extends sfMessageSource
       // append a target
       if ($found && !$targetted)
       {
-        $unit->appendChild($dom->createElement('target', $target));
+        $targetNode = $dom->createElement('target');
+        $targetNode->appendChild($dom->createTextNode($target));
+        $unit->appendChild($targetNode);
       }
 
       // append a note
       if ($found && !$commented && !empty($comments))
       {
-        $unit->appendChild($dom->createElement('note',$comments));
+        $commentsNode = $dom->createElement('note');
+        $commentsNode->appendChild($dom->createTextNode($comments));
+        $unit->appendChild($commentsNode);
       }
 
       // finished searching

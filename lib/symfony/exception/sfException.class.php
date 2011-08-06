@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,8 +17,8 @@
  * @package    symfony
  * @subpackage exception
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
- * @version    SVN: $Id: sfException.class.php 3243 2007-01-12 14:22:50Z fabien $
+ * @author     Sean Kerr <sean@code-box.org>
+ * @version    SVN: $Id: sfException.class.php 18492 2009-05-20 14:19:35Z nicolas $
  */
 class sfException extends Exception
 {
@@ -214,7 +214,7 @@ class sfException extends Exception
    */
   protected function formatArrayAsHtml($values)
   {
-    return '<pre>'.@sfYaml::Dump($values).'</pre>';
+    return '<pre>'.self::escape(@sfYaml::dump($values)).'</pre>';
   }
 
   /**
@@ -260,27 +260,46 @@ class sfException extends Exception
     {
       if (is_object($value))
       {
-        $result[] = ($format == 'html' ? '<em>object</em>' : 'object').'(\''.get_class($value).'\')';
+        $formattedValue = ($format == 'html' ? '<em>object</em>' : 'object').sprintf("('%s')", get_class($value));
       }
       else if (is_array($value))
       {
-        $result[] = ($format == 'html' ? '<em>array</em>' : 'array').'('.self::formatArgs($value).')';
+        $formattedValue = ($format == 'html' ? '<em>array</em>' : 'array').sprintf("(%s)", self::formatArgs($value));
       }
-      else if ($value === null)
+      else if (is_string($value))
       {
-        $result[] = '<em>null</em>';
+        $formattedValue = ($format == 'html' ? sprintf("'%s'", self::escape($value)) : "'$value'");
       }
-      else if (!is_int($key))
+      else if (is_null($value))
       {
-        $result[] = "'$key' =&gt; '$value'";
+        $formattedValue = ($format == 'html' ? '<em>null</em>' : 'null');
       }
       else
       {
-        $result[] = "'".$value."'";
+        $formattedValue = $value;
       }
+      
+      $result[] = is_int($key) ? $formattedValue : sprintf("'%s' => %s", self::escape($key), $formattedValue);
     }
 
     return implode(', ', $result);
+  }
+  
+  /**
+   * Escapes a string value with html entities
+   *
+   * @param  string  $value
+   *
+   * @return string
+   */
+  static protected function escape($value)
+  {
+    if (!is_string($value))
+    {
+      return $value;
+    }
+    
+    return htmlspecialchars($value, ENT_QUOTES, sfConfig::get('sf_charset', 'UTF-8'));
   }
 
   /**

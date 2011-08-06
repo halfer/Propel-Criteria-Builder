@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -16,8 +16,8 @@
  * @package    symfony
  * @subpackage filter
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
- * @version    SVN: $Id: sfExecutionFilter.class.php 3244 2007-01-12 14:46:11Z fabien $
+ * @author     Sean Kerr <sean@code-box.org>
+ * @version    SVN: $Id: sfExecutionFilter.class.php 8922 2008-05-13 08:20:09Z fabien $
  */
 class sfExecutionFilter extends sfFilter
 {
@@ -71,12 +71,26 @@ class sfExecutionFilter extends sfFilter
         // set default validated status
         $validated = true;
 
+        // the case of the first letter of the action is insignificant
         // get the current action validation configuration
-        $validationConfig = $moduleName.'/'.sfConfig::get('sf_app_module_validate_dir_name').'/'.$actionName.'.yml';
+        $validationConfigWithFirstLetterLower = $moduleName.'/'.sfConfig::get('sf_app_module_validate_dir_name').'/'.strtolower(substr($actionName, 0, 1)).substr($actionName, 1).'.yml';
+        $validationConfigWithFirstLetterUpper = $moduleName.'/'.sfConfig::get('sf_app_module_validate_dir_name').'/'.ucfirst($actionName).'.yml';
+
+        // determine $validateFile by testing both the uppercase and lowercase
+        // types of validation configurations.
+        $validateFile = null;
+        if (!is_null($testValidateFile = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$validationConfigWithFirstLetterLower, true)))
+        {
+          $validateFile = $testValidateFile;
+        }
+        else if (!is_null($testValidateFile = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$validationConfigWithFirstLetterUpper, true)))
+        {
+          $validateFile = $testValidateFile;
+        }
 
         // load validation configuration
         // do NOT use require_once
-        if (null !== $validateFile = sfConfigCache::getInstance()->checkConfig(sfConfig::get('sf_app_module_dir_name').'/'.$validationConfig, true))
+        if (!is_null($validateFile))
         {
           // create validator manager
           $validatorManager = new sfValidatorManager();

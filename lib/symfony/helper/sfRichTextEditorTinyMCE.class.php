@@ -26,7 +26,7 @@
  * @package    symfony
  * @subpackage helper
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfRichTextEditorTinyMCE.class.php 3284 2007-01-15 19:05:48Z fabien $
+ * @version    SVN: $Id: sfRichTextEditorTinyMCE.class.php 17861 2009-05-01 22:52:26Z FabianLange $
  */
 class sfRichTextEditorTinyMCE extends sfRichTextEditor
 {
@@ -41,7 +41,7 @@ class sfRichTextEditorTinyMCE extends sfRichTextEditor
 
     // we need to know the id for things the rich text editor
     // in advance of building the tag
-    $id = _get_option($options, 'id', $this->name);
+    $id = _get_option($options, 'id', get_id_from_name($this->name, null));
 
     // use tinymce's gzipped js?
     $tinymce_file = _get_option($options, 'tinymce_gzip') ? '/tiny_mce_gzip.php' : '/tiny_mce.js';
@@ -95,7 +95,7 @@ tinyMCE.init({
   theme_advanced_buttons1: "'.$style_selector.'justifyleft,justifycenter,justifyright,justifyfull,separator,bold,italic,strikethrough,separator,sub,sup,separator,charmap",
   theme_advanced_buttons2: "bullist,numlist,separator,outdent,indent,separator,undo,redo,separator,link,unlink,image,flash,separator,cleanup,removeformat,separator,code",
   theme_advanced_buttons3: "tablecontrols",
-  extended_valid_elements: "img[class|src|border=0|alt|title|hspace|vspace|width|height|align|onmouseover|onmouseout|name]",
+  extended_valid_elements: "img[class|src|border=0|alt|title|hspace|vspace|width|height|align|onmouseover|onmouseout|name|style]",
   relative_urls: false,
   debug: false
   '.($tinymce_options ? ','.$tinymce_options : '').'
@@ -109,6 +109,6 @@ tinyMCE.init({
 
     return
       content_tag('script', javascript_cdata_section($tinymce_js), array('type' => 'text/javascript')).
-      content_tag('textarea', $this->content, array_merge(array('name' => $this->name, 'id' => get_id_from_name($id, null)), _convert_options($options)));
+      content_tag('textarea', $this->content, array_merge(array('name' => $this->name, 'id' => $id), _convert_options($options)));
   }
 }

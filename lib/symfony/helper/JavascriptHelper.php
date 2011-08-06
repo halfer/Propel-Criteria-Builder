@@ -17,7 +17,7 @@
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     John Christopher <john.christopher@symfony-project.com>
  * @author     David Heinemeier Hansson
- * @version    SVN: $Id: JavascriptHelper.php 5847 2007-11-04 15:40:57Z fabien $
+ * @version    SVN: $Id: JavascriptHelper.php 17386 2009-04-17 01:11:41Z dwhittle $
  */
 
 /*
@@ -265,7 +265,7 @@
 
     $options['form'] = true;
 
-    $options_html['onsubmit'] = remote_function($options).'; return false;';
+    $options_html['onsubmit'] = remote_function($options).' return false;';
     $options_html['action'] = isset($options_html['action']) ? $options_html['action'] : url_for($options['url']);
     $options_html['method'] = isset($options_html['method']) ? $options_html['method'] : 'post';
 
@@ -287,7 +287,7 @@
     }
 
     $options_html['type'] = 'button';
-    $options_html['onclick'] = remote_function($options).'; return false;';
+    $options_html['onclick'] = remote_function($options).' return false;';
     $options_html['name'] = $name;
     $options_html['value'] = $value;
 
@@ -439,14 +439,14 @@
     }
     if (isset($options['confirm']))
     {
-      $function = "if (confirm('".escape_javascript($options['confirm'])."')) { $function; }";
+      $function = "if (window.confirm('".escape_javascript($options['confirm'])."')) { $function; }";
       if (isset($options['cancel']))
       {
         $function = $function.' else { '.$options['cancel'].' }';
       }
     }
 
-    return $function;
+    return $function.';';
   }
 
   /**
@@ -929,6 +929,10 @@
     if (isset($options['after_update_element']))
     {
       $js_options['afterUpdateElement'] = $options['after_update_element'];
+    }
+    if (isset($options['param_name'])) 
+    {
+      $js_options['paramName'] = "'".$options['param_name']."'";
     }
 
     $javascript .= ', '._options_for_javascript($js_options).');';

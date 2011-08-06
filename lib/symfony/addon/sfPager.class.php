@@ -12,7 +12,7 @@
  * @package    symfony
  * @subpackage addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfPager.class.php 6763 2007-12-27 16:09:11Z fabien $
+ * @version    SVN: $Id: sfPager.class.php 18089 2009-05-09 06:36:09Z fabien $
  */
 
 /**
@@ -22,7 +22,7 @@
  * @package    symfony
  * @subpackage addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfPager.class.php 6763 2007-12-27 16:09:11Z fabien $
+ * @version    SVN: $Id: sfPager.class.php 18089 2009-05-09 06:36:09Z fabien $
  */
 abstract class sfPager
 {
@@ -44,7 +44,6 @@ abstract class sfPager
   {
     $this->setClass($class);
     $this->setMaxPerPage($maxPerPage);
-    $this->setPage(1);
     $this->parameterHolder = new sfParameterHolder();
   }
 
@@ -80,13 +79,13 @@ abstract class sfPager
     $limit = ($check > 0) ? $check : 1;
     $begin = ($tmp > 0) ? (($tmp > $limit) ? $limit : $tmp) : 1;
 
-    $i = $begin;
+    $i = (int) $begin;
     while (($i < $begin + $nb_links) && ($i <= $this->lastPage))
     {
       $links[] = $i++;
     }
 
-    $this->currentMaxLink = $links[count($links) - 1];
+    $this->currentMaxLink = count($links) ? $links[count($links) - 1] : 1;
 
     return $links;
   }
@@ -250,9 +249,12 @@ abstract class sfPager
 
   public function setPage($page)
   {
-    $page = intval($page);
-
-    $this->page = ($page <= 0) ? 1 : $page;
+    $this->page = intval($page);
+    if ($this->page <= 0)
+    {
+      //set first page, which depends on a maximum set
+      $this->page = $this->getMaxPerPage() ? 1 : 0;
+    }
   }
 
   public function getMaxPerPage()

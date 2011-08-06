@@ -15,9 +15,8 @@
  * @package    symfony
  * @subpackage addon
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfData.class.php 3382 2007-02-01 07:34:56Z fabien $
+ * @version    SVN: $Id: sfData.class.php 20457 2009-07-24 09:25:18Z FabianLange $
  */
-
 abstract class sfData
 {
   protected
@@ -39,7 +38,7 @@ abstract class sfData
    * Gets the current value of the flag that indicates whether
    * current data is to be deleted or not.
    *
-   * @returns boolean
+   * @return boolean
    */
   public function getDeleteCurrentData()
   {
@@ -108,7 +107,7 @@ abstract class sfData
     }
     else if (is_dir($directory_or_file))
     {
-      $fixture_files = sfFinder::type('file')->name('*.yml')->in($directory_or_file);
+      $fixture_files = sfFinder::type('file')->ignore_version_control()->name('*.yml')->in($directory_or_file);
     }
     else
     {

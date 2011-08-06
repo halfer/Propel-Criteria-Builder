@@ -14,7 +14,7 @@
  * @package    symfony
  * @subpackage filter
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfCacheFilter.class.php 5145 2007-09-16 14:59:51Z fabien $
+ * @version    SVN: $Id: sfCacheFilter.class.php 24619 2009-11-30 23:14:18Z FabianLange $
  */
 class sfCacheFilter extends sfFilter
 {
@@ -115,13 +115,15 @@ class sfCacheFilter extends sfFilter
     $uri = sfRouting::getInstance()->getCurrentInternalUri();
 
     // save page in cache
-    if ($this->cache[$uri]['page'])
+    if (isset($this->cache[$uri]) && $this->cache[$uri]['page'])
     {
       // set some headers that deals with cache
-      $lifetime = $this->cacheManager->getClientLifeTime($uri, 'page');
-      $this->response->setHttpHeader('Last-Modified', $this->response->getDate(time()), false);
-      $this->response->setHttpHeader('Expires', $this->response->getDate(time() + $lifetime), false);
-      $this->response->addCacheControlHttpHeader('max-age', $lifetime);
+      if ($lifetime = $this->cacheManager->getClientLifeTime($uri, 'page'))
+      {
+        $this->response->setHttpHeader('Last-Modified', $this->response->getDate(time()), false);
+        $this->response->setHttpHeader('Expires', $this->response->getDate(time() + $lifetime), false);
+        $this->response->addCacheControlHttpHeader('max-age', $lifetime);
+      }
 
       // set Vary headers
       foreach ($this->cacheManager->getVary($uri, 'page') as $vary)
@@ -131,7 +133,7 @@ class sfCacheFilter extends sfFilter
 
       $this->setPageCache($uri);
     }
-    else if ($this->cache[$uri]['action'])
+    else if (isset($this->cache[$uri]) && $this->cache[$uri]['action'])
     {
       // save action in cache
       $this->setActionCache($uri);
@@ -149,8 +151,8 @@ class sfCacheFilter extends sfFilter
     // Etag support
     if (sfConfig::get('sf_etag'))
     {
-      $etag = md5($this->response->getContent());
-      $this->response->setHttpHeader('ETag', '"'.$etag.'"');
+      $etag = '"'.md5($this->response->getContent()).'"';
+      $this->response->setHttpHeader('ETag', $etag);
 
       if ($this->request->getHttpHeader('IF_NONE_MATCH') == $etag)
       {
@@ -169,7 +171,6 @@ class sfCacheFilter extends sfFilter
     if ($this->response->hasHttpHeader('Last-Modified') && !sfConfig::get('sf_debug'))
     {
       $last_modified = $this->response->getHttpHeader('Last-Modified');
-      $last_modified = $last_modified[0];
       if ($this->request->getHttpHeader('IF_MODIFIED_SINCE') == $last_modified)
       {
         $this->response->setStatusCode(304);

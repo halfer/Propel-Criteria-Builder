@@ -13,7 +13,7 @@
  * @package    symfony
  * @subpackage util
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfFinder.class.php 3268 2007-01-13 20:19:33Z fabien $
+ * @version    SVN: $Id: sfFinder.class.php 14266 2008-12-22 20:40:59Z FabianLange $
  */
 
 /**
@@ -33,7 +33,7 @@
  * @package    symfony
  * @subpackage util
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: sfFinder.class.php 3268 2007-01-13 20:19:33Z fabien $
+ * @version    SVN: $Id: sfFinder.class.php 14266 2008-12-22 20:40:59Z FabianLange $
  */
 class sfFinder
 {
@@ -233,13 +233,13 @@ class sfFinder
   /**
    * Ignores version control directories.
    *
-   * Currently supports subversion, CVS, DARCS, Gnu Arch, Monotone, Bazaar-NG
+   * Currently supports Subversion, CVS, DARCS, Gnu Arch, Monotone, Bazaar-NG, GIT, Mercurial
    *
    * @return object current pakeFinder object
    */
   public function ignore_version_control()
   {
-    $ignores = array('.svn', 'CVS', '_darcs', '.arch-params', '.monotone', '.bzr');
+    $ignores = array('.svn', '_svn', 'CVS', '_darcs', '.arch-params', '.monotone', '.bzr', '.git', '.hg');
 
     return $this->discard($ignores)->prune($ignores);
   }
@@ -357,7 +357,7 @@ class sfFinder
       return array();
     }
 
-    if (is_link($dir) && !$this->follow_link)
+    if ((!$this->follow_link) && is_link($dir))
     {
       return array();
     }
@@ -372,7 +372,7 @@ class sfFinder
         if ($entryname == '.' || $entryname == '..') continue;
 
         $current_entry = $dir.DIRECTORY_SEPARATOR.$entryname;
-        if (is_link($current_entry) && !$this->follow_link)
+        if ((!$this->follow_link) && is_link($current_entry))
         {
           continue;
         }
@@ -547,7 +547,7 @@ class sfFinder
  * @author     Richard Clamp <richardc@unixbeard.net> perl version
  * @copyright  2004-2005 Fabien Potencier <fabien.potencier@gmail.com>
  * @copyright  2002 Richard Clamp <richardc@unixbeard.net>
- * @version    SVN: $Id: sfFinder.class.php 3268 2007-01-13 20:19:33Z fabien $
+ * @version    SVN: $Id: sfFinder.class.php 14266 2008-12-22 20:40:59Z FabianLange $
  */
 class sfGlobToRegex
 {
@@ -669,7 +669,7 @@ class sfGlobToRegex
  * @copyright  2004-2005 Fabien Potencier <fabien.potencier@gmail.com>
  * @copyright  2002 Richard Clamp <richardc@unixbeard.net>
  * @see        http://physics.nist.gov/cuu/Units/binary.html
- * @version    SVN: $Id: sfFinder.class.php 3268 2007-01-13 20:19:33Z fabien $
+ * @version    SVN: $Id: sfFinder.class.php 14266 2008-12-22 20:40:59Z FabianLange $
  */
 class sfNumberCompare
 {

@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -30,8 +30,8 @@
  * @package    symfony
  * @subpackage validator
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
- * @version    SVN: $Id: sfNumberValidator.class.php 3233 2007-01-11 21:01:08Z fabien $
+ * @author     Sean Kerr <sean@code-box.org>
+ * @version    SVN: $Id: sfNumberValidator.class.php 8052 2008-03-23 02:30:30Z Carl.Vondrick $
  */
 class sfNumberValidator extends sfValidator
 {
@@ -45,7 +45,7 @@ class sfNumberValidator extends sfValidator
    */
   public function execute(&$value, &$error)
   {
-    if (!is_numeric($value))
+    if (!preg_match('/^-?\d+(\.\d+)?$/', $value))
     {
       // it's NaN, what nerve!
       $error = $this->getParameterHolder()->get('nan_error');

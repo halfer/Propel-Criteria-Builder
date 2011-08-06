@@ -14,7 +14,7 @@
  * @package    symfony
  * @subpackage helper
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: UrlHelper.php 6203 2007-11-29 13:27:36Z fabien $
+ * @version    SVN: $Id: UrlHelper.php 13408 2008-11-27 11:51:22Z fabien $
  */
 
 
@@ -162,14 +162,14 @@ function link_to($name = '', $internal_uri = '', $options = array())
  */
 function link_to_if($condition, $name = '', $internal_uri = '', $options = array())
 {
+  $html_options = _parse_attributes($options);
   if ($condition)
   {
-    return link_to($name, $internal_uri, $options);
+    unset($html_options['tag']);
+    return link_to($name, $internal_uri, $html_options);
   }
   else
   {
-    $html_options = _parse_attributes($options);
-
     unset($html_options['query_string']);
     unset($html_options['absolute_url']);
     unset($html_options['absolute']);
@@ -238,9 +238,9 @@ function link_to_unless($condition, $name = '', $url = '', $options = array())
  * @return string XHTML compliant <input> tag
  * @see    url_for, link_to
  */
-function button_to($name, $internal_uri, $options = array())
+function button_to($name, $internal_uri ='', $options = array())
 {
-  $html_options = _convert_options($options);
+  $html_options = _parse_attributes($options);
   $html_options['value'] = $name;
 
   if (isset($html_options['post']) && $html_options['post'])
@@ -253,23 +253,30 @@ function button_to($name, $internal_uri, $options = array())
     unset($html_options['post']);
     $html_options = _convert_options_to_javascript($html_options);
 
-    return form_tag($internal_uri, array('method' => 'post', 'class' => 'button_to')).tag('input', $html_options).'</form>';
+    return form_tag($internal_uri, array('method' => 'post', 'class' => 'button_to')).content_tag('div', tag('input', $html_options)).'</form>';
   }
-  else if (isset($html_options['popup']))
-  {
-    $html_options['type'] = 'button';
-    $html_options = _convert_options_to_javascript($html_options, $internal_uri);
 
-    return tag('input', $html_options);
+  $url = url_for($internal_uri);
+  if (isset($html_options['query_string']))
+  {
+    $url = $url.'?'.$html_options['query_string'];
+    unset($html_options['query_string']);
+  }
+  $url = "'".$url."'";
+  $html_options['type'] = 'button';
+
+  if (isset($html_options['popup']))
+  {
+    $html_options = _convert_options_to_javascript($html_options, $url);
+    unset($html_options['popup']);
   }
   else
   {
-    $html_options['type']    = 'button';
-    $html_options['onclick'] = "document.location.href='".url_for($internal_uri)."';";
+    $html_options['onclick'] = "document.location.href=".$url.";";
     $html_options = _convert_options_to_javascript($html_options);
-
-    return tag('input', $html_options);
   }
+
+  return tag('input', $html_options);
 }
 
 /**
@@ -288,7 +295,10 @@ function button_to($name, $internal_uri, $options = array())
  *  echo mail_to('webmaster@example.com', 'send us an email');
  *    => <a href="mailto:webmaster@example.com">send us an email</a>
  *  echo mail_to('webmaster@example.com', 'send us an email', array('encode' => true));
- *    => <a href="&#x6d;a&#x69;&#x6c;&#x74;&#111;&#58;&#x77;&#x65;b&#x6d;as&#116;&#x65;&#114;&#64;&#101;&#x78;&#x61;&#x6d;&#x70;&#108;&#x65;&#46;&#99;&#x6f;&#109;">send us an email</a>
+ *    => <a href="
+            &#x6d;a&#x69;&#x6c;&#x74;&#111;&#58;&#x77;&#x65;b&#x6d;as&#116;&#x65;&#114;
+            &#64;&#101;&#x78;&#x61;&#x6d;&#x70;&#108;&#x65;&#46;&#99;&#x6f;&#109;
+          ">send us an email</a>
  * </code>
  *
  * @param  string target email
@@ -332,7 +342,7 @@ function mail_to($email, $name = '', $options = array(), $default_value = array(
   return content_tag('a', $name, $html_options);
 }
 
-function _convert_options_to_javascript($html_options, $internal_uri = '')
+function _convert_options_to_javascript($html_options, $url = 'this.href')
 {
   // confirm
   $confirm = isset($html_options['confirm']) ? $html_options['confirm'] : '';
@@ -354,7 +364,7 @@ function _convert_options_to_javascript($html_options, $internal_uri = '')
   }
   else if ($confirm && $popup)
   {
-    $html_options['onclick'] = $onclick.'if ('._confirm_javascript_function($confirm).') { '._popup_javascript_function($popup, $internal_uri).' };return false;';
+    $html_options['onclick'] = $onclick.'if ('._confirm_javascript_function($confirm).') { '._popup_javascript_function($popup, $url).' };return false;';
   }
   else if ($confirm && $post)
   {
@@ -377,7 +387,7 @@ function _convert_options_to_javascript($html_options, $internal_uri = '')
   }
   else if ($popup)
   {
-    $html_options['onclick'] = $onclick._popup_javascript_function($popup, $internal_uri).'return false;';
+    $html_options['onclick'] = $onclick._popup_javascript_function($popup, $url).'return false;';
   }
 
   return $html_options;
@@ -388,10 +398,8 @@ function _confirm_javascript_function($confirm)
   return "confirm('".escape_javascript($confirm)."')";
 }
 
-function _popup_javascript_function($popup, $internal_uri = '')
+function _popup_javascript_function($popup, $url = '')
 {
-  $url = $internal_uri == '' ? 'this.href' : "'".url_for($internal_uri)."'";
-
   if (is_array($popup))
   {
     if (isset($popup[1]))

@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -19,7 +19,7 @@
  * @subpackage cache
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     Fabien Marty <fab@php.net>
- * @version    SVN: $Id: sfFileCache.class.php 5308 2007-09-29 06:51:43Z fabien $
+ * @version    SVN: $Id: sfFileCache.class.php 16899 2009-04-02 06:47:33Z fabien $
  */
 class sfFileCache extends sfCache
 {
@@ -71,7 +71,7 @@ class sfFileCache extends sfCache
   * x (integer) > 1 => automatic cleaning randomly 1 times on x cache write
   */
   protected $automaticCleaningFactor = 500;
-  
+
  /**
   * Nested directory level
   */
@@ -90,7 +90,10 @@ class sfFileCache extends sfCache
   */
   public function __construct($cacheDir = null)
   {
-    $this->setCacheDir($cacheDir);
+    if (!is_null($cacheDir))
+    {
+      $this->setCacheDir($cacheDir);
+    }
   }
 
   /**
@@ -274,7 +277,7 @@ class sfFileCache extends sfCache
 
     return false;
   }
-  
+
  /**
   * Saves some data in a cache file.
   *
@@ -483,7 +486,7 @@ class sfFileCache extends sfCache
       {
         $hashControl = @fread($fp, 32);
         $length = $length - 32;
-      } 
+      }
       $data = ($length) ? @fread($fp, $length) : '';
       set_magic_quotes_runtime($mqr);
       if ($this->fileLocking)
@@ -520,56 +523,45 @@ class sfFileCache extends sfCache
   */
   protected function write($path, $file, $data)
   {
-    $try = 1;
-    while ($try <= 2)
+    $current_umask = umask();
+    umask(0000);
+    if (!is_dir($path))
     {
-      $fp = @fopen($path.$file, 'wb');
-      if ($fp)
+      // create directory structure if needed
+      mkdir($path, 0777, true);
+    }
+
+    $tmpFile = tempnam(dirname($path), basename($file));
+
+    if (!$fp = @fopen($tmpFile, 'wb'))
+    {
+      throw new sfCacheException(sprintf('Unable to write cache file "%s".', $path.$file));
+    }
+
+    if ($this->readControl)
+    {
+      @fwrite($fp, $this->hash($data), 32);
+    }
+    @fwrite($fp, $data);
+    @fclose($fp);
+
+    // Hack from Agavi (http://trac.agavi.org/changeset/3979)
+    // With php < 5.2.6 on win32, renaming to an already existing file doesn't work, but copy does,
+    // so we simply assume that when rename() fails that we are on win32 and try to use copy()
+    if (!@rename($tmpFile, $path.$file))
+    {
+      if (copy($tmpFile, $path.$file))
       {
-        if ($this->fileLocking)
-        {
-          @flock($fp, LOCK_EX);
-        }
-        if ($this->readControl)
-        {
-          @fwrite($fp, $this->hash($data), 32);
-        }
-        @fwrite($fp, $data);
-        if ($this->fileLocking)
-        {
-          @flock($fp, LOCK_UN);
-        }
-        @fclose($fp);
-
-        // change file mode
-        $current_umask = umask();
-        umask(0000);
-        chmod($path.$file, 0666);
-        umask($current_umask);
-
-        return true;
-      }
-      else
-      {
-        if ($try == 1 && !is_dir($path))
-        {
-          // create directory structure if needed
-          $current_umask = umask(0000);
-          mkdir($path, 0777, true);
-          umask($current_umask);
-
-          $try = 2;
-        }
-        else
-        {
-          $try = 999;
-        }
+        unlink($tmpFile);
       }
     }
 
-    throw new sfCacheException('Unable to write cache file "'.$path.$file.'"');
+    chmod($path.$file, 0666);
+    umask($current_umask);
+
+    return true;
   }
-  
+
  /**
   * Writes the given data in the cache file and controls it just after to avoid corrupted cache entries.
   *
@@ -586,7 +578,7 @@ class sfFileCache extends sfCache
 
     return ($dataRead == $data);
   }
-  
+
  /**
   * Makes a control key with the string containing datas.
   *

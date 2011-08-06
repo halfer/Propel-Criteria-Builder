@@ -16,7 +16,7 @@
  * @subpackage helper
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author     David Heinemeier Hansson
- * @version    SVN: $Id: FormHelper.php 6374 2007-12-07 18:53:02Z fabien $
+ * @version    SVN: $Id: FormHelper.php 23543 2009-11-03 08:19:42Z fabien $
  */
 
 /**
@@ -75,7 +75,7 @@ function options_for_select($options = array(), $selected = '', $html_options = 
 
   foreach ($options as $key => $value)
   {
-    if (is_array($value))
+    if (is_array($value) || $value instanceof sfOutputEscaperArrayDecorator)
     {
       $html .= content_tag('optgroup', options_for_select($value, $selected, $html_options), array('label' => $key))."\n";
     }
@@ -421,7 +421,7 @@ function textarea_tag($name, $content = null, $options = array())
 
   if ($size = _get_option($options, 'size'))
   {
-    list($options['cols'], $options['rows']) = split('x', $size, 2);
+    list($options['cols'], $options['rows']) = explode('x', $size, 2);
   }
 
   // rich control?
@@ -586,9 +586,9 @@ function input_date_range_tag($name, $value, $options = array())
   $after  = _get_option($options, 'after', '');
 
   return $before.
-         input_date_tag($name.'[from]', $value['from'], $options).
+         input_date_tag($name.'[from]', isset($value['from']) ? $value['from'] : null, $options).
          $middle.
-         input_date_tag($name.'[to]', $value['to'], $options).
+         input_date_tag($name.'[to]',   isset($value['to'])   ? $value['to']   : null, $options).
          $after;
 }
 

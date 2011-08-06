@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -13,13 +13,12 @@ if (!isset($sf_symfony_lib_dir))
   die("You must launch symfony command line with the symfony script\n");
 }
 
-if (ini_get('zend.ze1_compatibility_mode'))
-{
-  die("symfony cannot run with zend.ze1_compatibility_mode enabled.\nPlease turn zend.ze1_compatibility_mode to Off in your php.ini.\n");
-}
-
 // set magic_quotes_runtime to off
 ini_set('magic_quotes_runtime', 'Off');
+
+// force populating $argc and $argv in the case PHP does not automatically create them (fixes #2943)
+$argv = $_SERVER['argv'];
+$argc = $_SERVER['argc'];
 
 // check if we are using an old project
 if (file_exists('config/config.php') && !isset($sf_symfony_lib_dir))
@@ -162,7 +161,7 @@ foreach ($dirs as $globDir => $name)
 {
   if ($dirs = glob($globDir))
   {
-    $tasks = pakeFinder::type('file')->name($name)->in($dirs);
+    $tasks = pakeFinder::type('file')->ignore_version_control()->name($name)->in($dirs);
     foreach ($tasks as $task)
     {
       include_once($task);

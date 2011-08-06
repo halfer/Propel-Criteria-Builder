@@ -13,7 +13,7 @@
  * {@link http://prado.sourceforge.net/}
  *
  * @author     Wei Zhuo <weizhuo[at]gmail[dot]com>
- * @version    $Id: sfMessageFormat.class.php 6806 2007-12-29 07:53:10Z fabien $
+ * @version    $Id: sfMessageFormat.class.php 24622 2009-11-30 23:49:47Z FabianLange $
  * @package    symfony
  * @subpackage i18n
  */
@@ -163,6 +163,8 @@ class sfMessageFormat
    */
   public function format($string, $args = array(), $catalogue = null, $charset = null)
   {
+    // make sure that objects with __toString() are converted to strings
+    $string = (string) $string;
     if (empty($charset))
     {
       $charset = $this->getCharset();
@@ -228,32 +230,23 @@ class sfMessageFormat
 
     foreach ($this->messages[$catalogue] as $variant)
     {
-      // foreach of the translation units
-      foreach ($variant as $source => $result)
+      // we found it, so return the target translation
+      if (isset($variant[$string]))
       {
-        // we found it, so return the target translation
-        if ($source == $string)
-        {
-          // check if it contains only strings.
-          if (is_string($result))
-          {
-            $target = $result;
-          }
-          else
-          {
-            $target = $result[0];
-          }
+        $target = $variant[$string]; 
 
-          // found, but untranslated
-          if (empty($target))
-          {
-            return $this->postscript[0].$this->replaceArgs($string, $args).$this->postscript[1];
-          }
-          else
-          {
-            return $this->replaceArgs($target, $args);
-          }
+        // check if it contains only strings.
+        if (is_array($target))
+        {
+          $target = array_shift($target);
         }
+
+        // found, but untranslated
+        if (empty($target))
+        {
+          return $this->postscript[0].$this->replaceArgs($string, $args).$this->postscript[1];
+        }
+        return $this->replaceArgs($target, $args);
       }
     }
 

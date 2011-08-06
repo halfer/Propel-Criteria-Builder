@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,8 +15,8 @@
  * @package    symfony
  * @subpackage controller
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
- * @version    SVN: $Id: sfController.class.php 6766 2007-12-27 16:12:50Z fabien $
+ * @author     Sean Kerr <sean@code-box.org>
+ * @version    SVN: $Id: sfController.class.php 14385 2008-12-30 08:36:18Z noel $
  */
 abstract class sfController
 {
@@ -174,7 +174,7 @@ abstract class sfController
     $app     = sfConfig::get('sf_app');
     $env     = sfConfig::get('sf_environment');
 
-    if (!sfConfig::get('sf_available') || sfToolkit::hasLockFile($rootDir.'/'.$app.'_'.$env.'.clilock'))
+    if (!sfConfig::get('sf_available') || sfToolkit::hasLockFile($rootDir.'/'.$app.'_'.$env.'.lck'))
     {
       // application is unavailable
       $moduleName = sfConfig::get('sf_unavailable_module');
@@ -269,7 +269,14 @@ abstract class sfController
         // change i18n message source directory to our module
         if (sfConfig::get('sf_i18n'))
         {
-          $this->context->getI18N()->setMessageSourceDir(sfLoader::getI18NDir($moduleName), $this->context->getUser()->getCulture());
+          if (sfLoader::getI18NDir($moduleName))
+          {
+            $this->context->getI18N()->setMessageSourceDir(sfLoader::getI18NDir($moduleName), $this->context->getUser()->getCulture());
+          }
+          else
+          {
+            $this->context->getI18N()->setMessageSourceDir(sfConfig::get('sf_app_i18n_dir'), $this->context->getUser()->getCulture());
+          }
         }
 
         // process the filter chain
@@ -533,8 +540,24 @@ abstract class sfController
       $this->getContext()->getRequest()->setAttribute($module.'_'.$action.'_view_name', $viewName, 'symfony/action/view');
     }
 
-    // forward to the mail action
-    $this->forward($module, $action);
+    try
+    {
+      // forward to the mail action
+      $this->forward($module, $action);
+    }
+    catch (Exception $e)
+    {
+      // put render mode back
+      $this->setRenderMode($renderMode);
+
+      // remove viewName
+      if ($viewName)
+      {
+        $this->getContext()->getRequest()->getAttributeHolder()->remove($module.'_'.$action.'_view_name', 'symfony/action/view');
+      }
+
+      throw $e;
+    }
 
     // grab the action entry from this forward
     $actionEntry = $actionStack->getEntry($index);
@@ -553,15 +576,11 @@ abstract class sfController
 
       if ($actionEntry->getModuleName() == sfConfig::get('sf_login_module') && $actionEntry->getActionName() == sfConfig::get('sf_login_action'))
       {
-        $error = 'Your action is secured but the user is not authenticated.';
-
-        throw new sfException($error);
+        throw new sfException('Your action is secured, but the user is not authenticated.');
       }
       else if ($actionEntry->getModuleName() == sfConfig::get('sf_secure_module') && $actionEntry->getActionName() == sfConfig::get('sf_secure_action'))
       {
-        $error = 'Your action is secured but the user does not have access.';
-
-        throw new sfException($error);
+        throw new sfException('Your action is secured, but the user does not have access.');
       }
     }
 

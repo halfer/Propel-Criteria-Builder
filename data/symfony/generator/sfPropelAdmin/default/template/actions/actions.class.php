@@ -7,7 +7,7 @@
  * @subpackage <?php echo $this->getGeneratedModuleName() ?>
 
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: actions.class.php 3501 2007-02-18 10:28:17Z fabien $
+ * @version    SVN: $Id: actions.class.php 9855 2008-06-25 11:26:01Z FabianLange $
  */
 class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
 {
@@ -32,7 +32,7 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     $this->addSortCriteria($c);
     $this->addFiltersCriteria($c);
     $this->pager->setCriteria($c);
-    $this->pager->setPage($this->getRequestParameter('page', 1));
+    $this->pager->setPage($this->getRequestParameter('page', $this->getUser()->getAttribute('page', 1, 'sf_admin/<?php echo $this->getSingularName() ?>')));
 <?php if ($this->getParameterValue('list.peer_method')): ?>
     $this->pager->setPeerMethod('<?php echo $this->getParameterValue('list.peer_method') ?>');
 <?php endif ?>
@@ -40,6 +40,10 @@ class <?php echo $this->getGeneratedModuleName() ?>Actions extends sfActions
     $this->pager->setPeerCountMethod('<?php echo $this->getParameterValue('list.peer_count_method') ?>');
 <?php endif ?>
     $this->pager->init();
+    // save page
+    if ($this->getRequestParameter('page')) {
+        $this->getUser()->setAttribute('page', $this->getRequestParameter('page'), 'sf_admin/<?php echo $this->getSingularName() ?>');
+    }
   }
 
   public function executeCreate()
@@ -199,9 +203,9 @@ $column = sfPropelManyToMany::getColumn($class, $through_class);
 <?php foreach ($this->getColumnCategories('edit.display') as $category): ?>
 <?php foreach ($this->getColumns('edit.display', $category) as $name => $column): $type = $column->getCreoleType(); ?>
 <?php $name = $column->getName() ?>
-<?php if ($column->isPrimaryKey()) continue ?>
-<?php $credentials = $this->getParameterValue('edit.fields.'.$column->getName().'.credentials') ?>
 <?php $input_type = $this->getParameterValue('edit.fields.'.$column->getName().'.type') ?>
+<?php if ($column->isPrimaryKey() || $input_type == 'plain') continue ?>
+<?php $credentials = $this->getParameterValue('edit.fields.'.$column->getName().'.credentials') ?>
 <?php if ($credentials): $credentials = str_replace("\n", ' ', var_export($credentials, true)) ?>
     if ($this->getUser()->hasCredential(<?php echo $credentials ?>))
     {
@@ -317,6 +321,7 @@ $column = sfPropelManyToMany::getColumn($class, $through_class);
 <?php endif; ?>
 <?php endforeach; ?>
 
+      $this->getUser()->getAttributeHolder()->removeNamespace('sf_admin/<?php echo $this->getSingularName() ?>');
       $this->getUser()->getAttributeHolder()->removeNamespace('sf_admin/<?php echo $this->getSingularName() ?>/filters');
       $this->getUser()->getAttributeHolder()->add($filters, 'sf_admin/<?php echo $this->getSingularName() ?>/filters');
     }

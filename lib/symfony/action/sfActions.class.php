@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  * 
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,8 +15,8 @@
  * @package    symfony
  * @subpackage action
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
- * @version    SVN: $Id: sfActions.class.php 3198 2007-01-08 20:36:20Z fabien $
+ * @author     Sean Kerr <sean@code-box.org>
+ * @version    SVN: $Id: sfActions.class.php 19911 2009-07-06 07:52:48Z FabianLange $
  */
 abstract class sfActions extends sfAction
 {
@@ -36,6 +36,15 @@ abstract class sfActions extends sfAction
   {
     // dispatch action
     $actionToRun = 'execute'.ucfirst($this->getActionName());
+
+    if ($actionToRun === 'execute')
+    {
+      // no action given
+      $error = 'sfAction initialization failed for module "%s". There was no action given.';
+      $error = sprintf($error, $this->getModuleName());
+      throw new sfInitializationException($error);
+    }
+
     if (!is_callable(array($this, $actionToRun)))
     {
       // action not found

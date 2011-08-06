@@ -3,7 +3,7 @@
 /*
  * This file is part of the symfony package.
  * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * (c) 2004-2006 Sean Kerr.
+ * (c) 2004-2006 Sean Kerr <sean@code-box.org>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,8 +17,8 @@
  * @package    symfony
  * @subpackage controller
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @author     Sean Kerr <skerr@mojavi.org>
- * @version    SVN: $Id: sfFrontWebController.class.php 6610 2007-12-20 14:10:46Z noel $
+ * @author     Sean Kerr <sean@code-box.org>
+ * @version    SVN: $Id: sfFrontWebController.class.php 8319 2008-04-05 18:10:53Z FabianLange $
  */
 class sfFrontWebController extends sfWebController
 {
@@ -66,7 +66,7 @@ class sfFrontWebController extends sfWebController
       try
       {
         // wrap non symfony exceptions
-        $sfException = new sfException($e->getMessage());
+        $sfException = new sfException($e->getMessage().' in '.$e->getFile().' line '.$e->getLine());
         $sfException->printStackTrace($e);
       }
       catch (Exception $e)
