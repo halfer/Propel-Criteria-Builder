@@ -6,7 +6,7 @@ class analyseAction extends sfAction
 		// If this is not a POST then redirect
 		if ($this->getRequest()->getMethod() != sfRequest::POST)
 		{
-			$this->forward('criteria', 'index');
+			$this->forward($this->getModuleName(), 'index');
 		}
 
 		// Get the input, moan and exit if there's nothing

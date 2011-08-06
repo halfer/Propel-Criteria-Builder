@@ -12,6 +12,9 @@ class CriteriaAnalyse
 
 	public function analyse($strLogic)
 	{
+		// Remove CRs
+		$strLogic = $this->removeReturns($strLogic);
+		
 		// Parse out strings as #1 priority
 		$this->strings = array();
 		QuotedStringParser::extractStrings($strLogic, $this->strings);
@@ -58,6 +61,18 @@ class CriteriaAnalyse
 		}
 
 		return $ok;
+	}
+
+	/**
+	 * Replaces carriage returns with spaces
+	 *
+	 * @param string $str
+	 * @return string
+	 */
+	private function removeReturns($str)
+	{
+		$pieces = explode("\n", $str);
+		return implode(' ', $pieces);
 	}
 
 	private function preProcess($input)

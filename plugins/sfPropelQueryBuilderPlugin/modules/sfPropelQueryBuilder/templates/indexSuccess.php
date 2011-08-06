@@ -109,6 +109,7 @@ AND and OR - use brackets to indicate precedence.</p>
 <li><s>Correctly interpret NOT LIKE and NOT IN if they contain more than one space character</s></li>
 <li><s>Radio buttons to choose Propel arrays or ResultSet result</s></li>
 <li><s>Tickbox to include demo iterative loop</s></li>
+<li><s>Remove redundant carriage returns in input</s></li>
 <li>Preserve options upon query submit</li>
 <li>Collapse multiple ORs on the same field to IN</li>
 <li>Allow spec of ASC and DESC sort columns</li>
