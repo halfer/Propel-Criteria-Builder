@@ -1,6 +1,6 @@
 # Normal files/folders to ignore
-#cache/*
-#log/*
+cache/*
+log/*
 
 # Any IDE folders to ignore
 nbproject
