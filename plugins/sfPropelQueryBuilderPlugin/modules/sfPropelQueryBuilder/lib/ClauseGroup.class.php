@@ -73,7 +73,7 @@ class ClauseGroup
 			if (is_string($subClause))
 			{
 				$column = $op = $value = null;
-				SubclauseParser::parse($subClause, &$column, &$op, &$value);
+				SubclauseParser::parse($subClause, $column, $op, $value);
 				if (!$cType)
 				{
 					$cType = $op;
