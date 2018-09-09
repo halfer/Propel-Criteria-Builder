@@ -322,13 +322,26 @@ class sfWebResponse extends sfResponse
   /**
    * Retrieves a normalized Header.
    *
+   * Hacked Symfony core, since this crashed on PHP 7. See details here:
+   * https://www.ryadel.com/en/php-fix-warning-preg_replace-e-modifier-no-longer-supported-error-php7/
+   *
    * @param string Header name
    *
    * @return string Normalized header
    */
   protected function normalizeHeaderName($name)
   {
-    return preg_replace('/\-(.)/e', "'-'.strtoupper('\\1')", strtr(ucfirst(strtolower($name)), '_', '-'));
+    return preg_replace_callback(
+        '/\-(.)/',
+        function($matches)
+        {
+            foreach($matches as $match)
+            {
+                return '-' . strtoupper($match);
+            }
+        },
+        strtr(ucfirst(strtolower($name)), '_', '-')
+    );
   }
 
   /**
