@@ -20,6 +20,10 @@ Criteria classes do still exist. So, this project has been rather superceded!
 Updated Sep 2018
 ---
 
+I've left this old repo up, and the associated service, partly for posterity, and partly
+because I dislike breaking links. For now, this can lurk in a Docker container on my
+shiny new server.
+
 The Propel project itself has mostly died now, so anyone starting a new project
 with an ORM requirement should probably be looking at Doctrine. Still, the Propel team
 do make commits very occasionally, so you never know!
